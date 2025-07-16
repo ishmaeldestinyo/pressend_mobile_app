@@ -68,9 +68,9 @@ const DetailTransactionViaTagTransfer: React.FC<Props> = ({ route }) => {
   return (
     <View style={tw`flex-1 bg-[#020618]`}>
       <TopNavbar title="Transaction Detail" />
-      <ScrollView style={tw`p-4 mb-20`}>
+      <ScrollView style={tw`p-4 mb-12`}>
         {transaction.map((tx, index) => (
-          <View key={index} style={tw`mb-4 p-4 bg-gray-900 rounded-xl`}>
+          <View key={index} style={tw`mb-2 p-4 bg-gray-900 rounded-xl`}>
             <View style={tw`flex-row justify-between mb-1`}>
               <Text style={tw`text-gray-400 text-sm`}>Type:</Text>
               <Text style={tw`text-white text-sm`}>{tx.type}</Text>
@@ -124,7 +124,7 @@ const DetailTransactionViaTagTransfer: React.FC<Props> = ({ route }) => {
       </ScrollView>
 
       {/* Buttons Container */}
-      <View style={tw`absolute bottom-3 left-4 right-4`}>
+      <View style={tw`absolute bottom-1 left-4 right-4`}>
         <TouchableOpacity
           style={tw`bg-blue-600 py-3 rounded-xl my-2`}
           onPress={() => navigation.navigate(AppRoutes.Home)}

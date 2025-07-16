@@ -80,7 +80,7 @@ export default function App() {
                 <View style={{ flex: 1 }}>
                   <Stack.Navigator
                     initialRouteName={
-                      newUser === 'No' ? AppRoutes.ListTransaction : AppRoutes.Onboarding
+                      newUser === 'No' ? AppRoutes.Home : AppRoutes.Onboarding
                     }
                     screenOptions={{ headerShown: false }}
                   >

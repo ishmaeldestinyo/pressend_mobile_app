@@ -39,7 +39,9 @@ interface InputErrors {
   otherError?: string;
   firstName?: string;
   lastName?: string;
+  phoneNumber?: string;
 }
+
 
 function CreateWallet() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -50,9 +52,14 @@ function CreateWallet() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const [errors, setErrors] = useState<InputErrors>({});
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [errors, setErrors] = useState<InputErrors & { phoneNumber?: string }>({});
+  const phoneShake = useSharedValue(0);
+
 
   const firstNameShake = useSharedValue(0);
   const lastNameShake = useSharedValue(0);
@@ -64,11 +71,14 @@ function CreateWallet() {
       transform: [{ translateX: shakeVal.value }],
     }));
 
+  const phoneStyle = getShakeStyle(phoneShake);
+
+
   const handleNavigate = (target: keyof RootStackParamList) => {
     navigation.navigate(target);
   };
 
-  const shake = (field: 'first_name' | 'last_name' | 'email' | 'password') => {
+  const shake = (field: 'first_name' | 'last_name' | 'email' | 'password' | 'phone') => {
     const sv =
       field === 'first_name'
         ? firstNameShake
@@ -76,7 +86,10 @@ function CreateWallet() {
           ? lastNameShake
           : field === 'email'
             ? emailShake
-            : passwordShake;
+            : field === 'phone'
+              ? phoneShake
+              : passwordShake;
+
 
     sv.value = withSequence(
       withTiming(-8, { duration: 50 }),
@@ -105,6 +118,11 @@ function CreateWallet() {
     if (!lastName.trim()) {
       newErrors.lastName = 'Last name is required';
       shake('last_name');
+    }
+
+    if (!phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Phone number is required';
+      shake('phone');
     }
 
     if (!email) {
@@ -142,6 +160,7 @@ function CreateWallet() {
           last_name: lastName,
           email,
           password,
+          phone_number: phoneNumber,
           device_info,
           country_code: 'NG',
         },
@@ -190,12 +209,12 @@ function CreateWallet() {
             <Text style={tw`text-white text-xl font-bold text-center mb-2`}>
               Create Account
             </Text>
-            <Text style={tw`text-white text-sm text-center mb-6`}>
+            <Text style={tw`text-white text-sm text-center mb-8`}>
               Let's get you started with a new account
             </Text>
 
             {/* First and Last Name (DO NOT TOUCH) */}
-            <View style={tw`flex-row justify-between mb-4`}>
+            <View style={tw`flex-row justify-between mb-3`}>
               <Animated.View style={[firstNameStyle, tw`flex-1 mr-2`]}>
                 <View style={tw`relative`}>
                   <UserIcon size={20} color="#ccc" style={tw`absolute left-3 top-3`} />
@@ -234,8 +253,47 @@ function CreateWallet() {
                 </Text>
               </Animated.View>
             </View>
+            <Animated.View style={[phoneStyle, tw`mb-3`]}>
+              <View style={tw`relative`}>
+                <UserIcon size={20} color="#ccc" style={tw`absolute left-3 top-3`} />
+                <TextInput
+                  placeholder="Phone Number"
+                  placeholderTextColor="#9ca3af"
+                  value={phoneNumber}
+                  textContentType='telephoneNumber'
+                  onChangeText={(text) => {
+                    const digitsOnly = text.replace(/\D/g, '');
 
-            <Animated.View style={[emailStyle, tw`mb-4`]}>
+                    if (digitsOnly.length === 1 && digitsOnly[0] !== '0') {
+                      setErrors((prev) => ({ ...prev, phoneNumber: 'Phone number must start with 0' }));
+                      return; // block further input
+                    }
+
+                    // Clear error if first digit is zero or empty
+                    setErrors((prev) => ({ ...prev, phoneNumber: '' }));
+
+                    if (digitsOnly.length > 15) return; // block extra digits silently
+
+                    setPhoneNumber(digitsOnly);
+
+                    let error = '';
+                    if (digitsOnly.length >= 11 && !/^\d{11,15}$/.test(digitsOnly)) {
+                      error = 'Enter a valid phone number';
+                    }
+
+                    setErrors((prev) => ({ ...prev, phoneNumber: error }));
+                  }}
+
+                  keyboardType="phone-pad"
+                  style={tw`border border-[#3c4464] bg-[rgba(255,255,255,0.05)] text-white rounded-lg pl-10 py-2`}
+                />
+              </View>
+              <Text style={tw`text-red-500 mt-1 min-h-5`}>
+                {errors.phoneNumber || ' '}
+              </Text>
+            </Animated.View>
+
+            <Animated.View style={[emailStyle, tw`mb-3`]}>
               <View style={tw`relative`}>
                 <EnvelopeIcon size={20} color="#ccc" style={tw`absolute left-3 top-3`} />
                 <TextInput
@@ -286,7 +344,7 @@ function CreateWallet() {
               <Text style={tw`text-red-500 text-center mt-3`}>{errors.otherError}</Text>
             )}
 
-            <View style={tw`flex-row items-center mt-4`}>
+            <View style={tw`flex-row items-center mt-0`}>
               <Checkbox
                 value={agreed}
                 onValueChange={setAgreed}

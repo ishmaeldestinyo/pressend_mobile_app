@@ -1,4 +1,4 @@
-virtual account topup & bank transfer
+virtual account topup & 
 palmprint secret code
 
 

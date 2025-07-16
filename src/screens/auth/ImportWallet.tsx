@@ -132,7 +132,7 @@ function ImportWallet() {
         url: '/auth/login',
         data: {
           email,
-          phone,
+          phone_number: phone,
           password,
           device_info,
           country_code: 'NG',
@@ -234,13 +234,36 @@ function ImportWallet() {
                       placeholder="09027585555"
                       placeholderTextColor="#9ca3af"
                       value={phone}
-                      onChangeText={setPhone}
+                      onChangeText={(text) => {
+                        const digitsOnly = text.replace(/\D/g, '');
+
+                        if (digitsOnly.length === 1 && digitsOnly[0] !== '0') {
+                          setErrors((prev) => ({ ...prev, phone: 'Phone number must start with 0' }));
+                          return;
+                        }
+
+                        // Clear the error if first digit is 0 or empty
+                        setErrors((prev) => ({ ...prev, phone: '' }));
+
+                        if (digitsOnly.length > 15) return;
+
+                        setPhone(digitsOnly);
+
+                        let error = '';
+                        if (digitsOnly.length >= 11 && !/^\d{11,15}$/.test(digitsOnly)) {
+                          error = 'Enter a valid phone number';
+                        }
+
+                        setErrors((prev) => ({ ...prev, phone: error }));
+                      }}
+
+
                       keyboardType="phone-pad"
                       style={tw`border border-[#3c4464] bg-[rgba(255,255,255,0.05)] text-white rounded-lg pl-10 py-2`}
                     />
                   </View>
                   <View style={tw`min-h-5 mt-1`}>
-                    {errors.phone && <Text style={tw`text-red-500`}>{errors.phone}</Text>}
+                    {errors.phone && <Text style={tw`text-red-500 text-sm`}>{errors.phone}</Text>}
                   </View>
                 </View>
               </Animated.View>
@@ -253,7 +276,10 @@ function ImportWallet() {
                   placeholder="Enter Password"
                   placeholderTextColor="#9ca3af"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setErrors((prev) => ({ ...prev, password: "" }));
+                    setPassword(text);
+                  }}
                   secureTextEntry={!showPassword}
                   style={tw`border border-[#3c4464] bg-[rgba(255,255,255,0.05)] text-white rounded-lg pl-10 pr-10 py-2`}
                 />
@@ -286,13 +312,17 @@ function ImportWallet() {
 
           <View style={tw`absolute bottom-16 left-5 right-5`}>
             <TouchableOpacity
-              style={tw.style(`py-3 rounded-xl items-center`, email && password ? 'bg-[#2299fb]' : 'bg-gray-500')}
+              style={tw.style(
+                `py-3 rounded-xl items-center`,
+                ((email || phone) && password) ? 'bg-[#2299fb]' : 'bg-gray-500'
+              )}
               onPress={signInHandler}
-              disabled={!email || !password}
+              disabled={!((email || phone) && password)}
             >
               <Text style={tw`text-white font-semibold text-base`}>Submit</Text>
             </TouchableOpacity>
           </View>
+
 
           <View style={tw`absolute bottom-5 left-0 right-0 items-center`}>
             <Text style={tw`text-gray-400`}>

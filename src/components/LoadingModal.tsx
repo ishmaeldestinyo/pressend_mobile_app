@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { Animated, Image, View } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { Animated, View } from 'react-native'
 import tw from 'twrnc'
 
 function LoadingModal() {

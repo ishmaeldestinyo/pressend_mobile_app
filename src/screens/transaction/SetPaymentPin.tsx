@@ -14,6 +14,8 @@ import { axiosInstance } from '../../api/axiosConfig';
 import Animated, { FadeInUp, FadeIn, FadeOut } from 'react-native-reanimated';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Keychain from 'react-native-keychain';
+import { useAuth } from '../../context/userContext';
 
 const SetPaymentPin = () => {
   const [pin, setPin] = useState<string[]>(['', '', '', '']);
@@ -21,6 +23,8 @@ const SetPaymentPin = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [tooltipMessage, setTooltipMessage] = useState('');
+
+  const {authUser} = useAuth();
 
   const handlePinButtonPress = (num: string) => {
     const nextPin = [...pin];
@@ -68,6 +72,9 @@ const SetPaymentPin = () => {
         setPin(['', '', '', '']);
         setTimeout(() => setShowSuccess(false), 2500);
         setTimeout(() => setTooltipMessage(''), 1000); // Hide tooltip after 1s
+        await Keychain.setGenericPassword(authUser?.account_id?._id, pin.join(''));
+
+
       } else {
         setError('Something went wrong, please try again.');
       }

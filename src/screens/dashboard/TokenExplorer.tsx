@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import tw from 'twrnc';

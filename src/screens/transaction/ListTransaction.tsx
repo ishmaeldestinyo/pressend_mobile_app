@@ -93,10 +93,10 @@ function ListTransaction() {
     const q = searchQuery.toLowerCase();
     return (
       (t.reference?.toLowerCase().includes(q) ||
-      t.internal_ref?.toLowerCase().includes(q) ||
-      t.recipient?.bank_name?.toLowerCase().includes(q) ||
-      t.reason?.toLowerCase().includes(q) ||
-      t.amount.toString().includes(q)) // added amount as string search
+        t.internal_ref?.toLowerCase().includes(q) ||
+        t.recipient?.bank_name?.toLowerCase().includes(q) ||
+        t.reason?.toLowerCase().includes(q) ||
+        t.amount.toString().includes(q)) // added amount as string search
     );
   });
 
@@ -192,34 +192,36 @@ function ListTransaction() {
             <TouchableOpacity
               activeOpacity={0.6}
               key={key}
-              style={tw`py-1 px-2 ${key === sortByItems.length - 1 ? 'border-b-none' : 'border-b'} my-1`}
+              style={tw`py-2 px-3 ${key === sortByItems.length - 1 ? 'border-b-none' : 'border-b'} my-1`}
               onPress={() => {
                 setSortBy(item);
                 setOpenSort(false);
               }}
             >
-              <Text style={tw`text-white text-[10px] text-center`}>{item}</Text>
+              <Text style={tw`text-white text-[12px] text-center`}>{item}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Totals Summary */}
-        <View style={tw`bg-[#10172F] px-4 py-2 border-b mb-1 border-gray-900`}>
-          <View style={tw`flex-row flex-wrap justify-between`}>
-            <View style={tw` mb-1`}>
-              <Text style={tw`text-gray-300 text-[10px]`}>Incoming Successful:</Text>
-              <Text style={tw`text-green-500 text-[11px]`}>₦{FormatAmount(totals.incomingSuccess.toString())}</Text>
-            </View>
-            <View style={tw` mb-1`}>
-              <Text style={tw`text-gray-300 text-[10px]`}>Outgoing Successful:</Text>
-              <Text style={tw`text-green-500 text-[11px]`}>₦{FormatAmount(totals.outgoingSuccess.toString())}</Text>
-            </View>
-            <View style={tw` mb-1`}>
-              <Text style={tw`text-gray-300 text-[10px]`}>Outgoing Failed:</Text>
-              <Text style={tw`text-red-500 text-[11px]`}>₦{FormatAmount(totals.outgoingFailed.toString())}</Text>
+        {transactions && transactions.length > 0 && (
+          <View style={tw`bg-[#10172F] px-4 py-2 border-b mb-1 border-gray-900`}>
+            <View style={tw`flex-row flex-wrap justify-between`}>
+              <View style={tw` mb-1`}>
+                <Text style={tw`text-gray-300 text-[10px]`}>Incoming Successful:</Text>
+                <Text style={tw`text-green-500 text-[12px]`}>₦{FormatAmount(totals.incomingSuccess.toString())}</Text>
+              </View>
+              <View style={tw` mb-1`}>
+                <Text style={tw`text-gray-300 text-[10px]`}>Outgoing Successful:</Text>
+                <Text style={tw`text-green-500 text-[12px]`}>₦{FormatAmount(totals.outgoingSuccess.toString())}</Text>
+              </View>
+              <View style={tw` mb-1`}>
+                <Text style={tw`text-gray-300 text-[10px]`}>Outgoing Failed:</Text>
+                <Text style={tw`text-red-500 text-[12px]`}>₦{FormatAmount(totals.outgoingFailed.toString())}</Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         {/* Transactions List */}
         {sortedTransactions.length > 0 ? (
@@ -229,7 +231,7 @@ function ListTransaction() {
                 key={key}
                 onPress={() =>
                   navigation.navigate(AppRoutes.DetailTransactionViaTagTransfer, {
-                    data: transaction?.recipient?.bank_name ? transaction.reference: transaction.internal_ref ,
+                    data: transaction?.recipient?.bank_name ? transaction.reference : transaction.internal_ref,
                   })
                 }
                 activeOpacity={0.6}
@@ -262,13 +264,12 @@ function ListTransaction() {
                     {FormatAmount(`${transaction.amount}`)}
                   </Text>
                   <Text
-                    style={tw`${
-                      transaction.status === 'success'
+                    style={tw`${transaction.status === 'success'
                         ? 'text-green-500'
                         : transaction.status === 'failed'
-                        ? 'text-red-500'
-                        : 'text-orange-600'
-                    } text-right text-[10px] mt-1`}
+                          ? 'text-red-500'
+                          : 'text-orange-600'
+                      } text-right text-[10px] mt-1`}
                   >
                     {transaction.status}
                   </Text>
@@ -279,7 +280,7 @@ function ListTransaction() {
         ) : (
           <View style={tw`w-fit mx-auto mt-44`}>
             <MagnifyingGlassIcon style={tw`text-gray-700 w-fit mx-auto`} size={44} />
-            <Text style={tw`text-gray-600 text-[12px]`}>No Transaction found!</Text>
+            <Text style={tw`text-gray-600 text-[12px]`}>No Transaction found</Text>
           </View>
         )}
       </View>

@@ -12,6 +12,7 @@ import {
 import axios from 'axios';
 import tw from 'twrnc';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { capitalizeEachWord } from '../utils/paymentUtil';
 
 interface Bank {
   name: string;
@@ -30,7 +31,11 @@ interface FiatTransferCardProps {
 
   note: string;
   setNote: (value: string) => void;
-  
+  beneficiary?: string;
+  setBeneficiary: (value: string) => void;
+  setInvalidAcctError: (value: string) => void;
+  invalidAcctError: string;
+
 }
 
 const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
@@ -42,6 +47,10 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
   setAccount,
   note,
   setNote,
+  setInvalidAcctError,
+  invalidAcctError,
+  setBeneficiary,
+  beneficiary
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [filteredBanks, setFilteredBanks] = useState<Bank[]>([]);
@@ -77,8 +86,6 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
       setFilteredBanks(filtered);
     }
   }, [searchTerm, banks]);
-
-  const beneficiary = bank && account.length === 10 ? 'John Doe' : '';
 
   return (
     <View style={tw`bg-gray-900 p-4 rounded-xl mb-6`}>
@@ -117,7 +124,7 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
                 <Text style={tw`text-white text-lg font-bold mb-4 text-center`}>Select Bank</Text>
 
                 {/* Search Input */}
-                <MagnifyingGlassIcon style={tw`text-gray-500 absolute top-18  z-50 right-8`}/> 
+                <MagnifyingGlassIcon style={tw`text-gray-500 absolute top-18  z-50 right-8`} />
                 <TextInput
                   value={searchTerm}
                   onChangeText={setSearchTerm}
@@ -135,6 +142,8 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
                         onPress={() => {
                           setBank(b.name);
                           setBankCode(b.code);
+                          setBeneficiary('');
+                          setInvalidAcctError('');
                           setBankModalVisible(false);
                         }}
                         style={tw`py-3 px-4 border-b border-gray-800`}
@@ -155,24 +164,33 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
       )}
 
       {/* Account Number Input */}
-      <Text style={tw`text-white mb-2`}>Account Number</Text>
-      <TextInput
-        value={account}
-        onChangeText={(text) => {
-          const digitsOnly = text.replace(/\D/g, '');
-          setAccount(digitsOnly);
-        }}
-        placeholder="0123456789"
-        placeholderTextColor="gray"
-        keyboardType="number-pad"
-        maxLength={10}
-        style={tw`bg-gray-800 text-white rounded px-5 py-2 mb-4`}
-      />
+      <View style={tw`relative`}>
+        <Text style={tw`text-white mb-2`}>Account Number</Text>
+        {/* Beneficiary display */}
+        {beneficiary ? (
+          <Text style={tw`text-[#2299fb] absolute right-2 text-[13px] mb-4`}>{capitalizeEachWord(beneficiary)}</Text>
+        ) : null}
 
-      {/* Beneficiary display */}
-      {beneficiary ? (
-        <Text style={tw`text-green-400 mb-4`}>Beneficiary: {beneficiary}</Text>
-      ) : null}
+        {invalidAcctError ? (
+          <Text style={tw`text-red-400 absolute right-2 text-sm mb-4`}>{invalidAcctError}</Text>
+        ) : null}
+        <TextInput
+          value={account}
+          onChangeText={(text) => {
+            setBeneficiary('');
+            setInvalidAcctError('');
+            const digitsOnly = text.replace(/\D/g, '');
+            setAccount(digitsOnly);
+          }}
+          placeholder="0123456789"
+          placeholderTextColor="gray"
+          keyboardType="number-pad"
+          maxLength={10}
+          style={[tw`bg-gray-800 text-white rounded py-2 mb-4`, { paddingLeft: 20, paddingRight: 20 }]}
+        />
+      </View>
+
+
 
       {/* Note Input */}
       <Text style={tw`text-white mb-2`}>Note (optional)</Text>
@@ -183,7 +201,7 @@ const FiatTransferCard: React.FC<FiatTransferCardProps> = ({
         placeholderTextColor="gray"
         multiline
         numberOfLines={3}
-        style={tw`bg-gray-800 text-white rounded px-5 py-2`}
+        style={[tw`bg-gray-800 text-white rounded py-2`, { paddingLeft: 16, paddingRight: 16 }]}
       />
     </View>
   );

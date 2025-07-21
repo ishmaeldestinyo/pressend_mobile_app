@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,9 +7,9 @@ import {
   Animated,
   Dimensions,
   Pressable,
-  ToastAndroid,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { ActivityIndicator } from 'react-native';
 import {
   BellIcon,
   QrCodeIcon,
@@ -25,19 +25,24 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/userContext';
-import { AppRoutes } from '../constants/routes';
+import { AppRoutes, RootStackParamList } from '../constants/routes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-export default function HomeNavbar() {
-  const [showTag, setShowTag] = useState(true);
+interface HomeNavbarProps {
+  showTag: boolean,
+  setShowTag: (val: boolean) => void
+}
+export default function HomeNavbar({setShowTag, showTag}: HomeNavbarProps) {
   const [copied, setCopied] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH)).current;
   const { authUser } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
 
   const singleTapTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastTap = useRef<number>(0);
@@ -47,7 +52,6 @@ export default function HomeNavbar() {
     if (!tag) return;
     Clipboard.setString(tag);
     setCopied(true);
-    ToastAndroid.show('Tag copied!', ToastAndroid.SHORT);
     setTimeout(() => setCopied(false), 1500);
   };
 
@@ -121,11 +125,15 @@ export default function HomeNavbar() {
           <View style={styles.tagWrapper}>
             <Pressable onPress={handleTagPress}>
               <View>
-                <Text style={styles.tagText}>
-                  {showTag
-                    ? authUser?.account_id?.tagname || authUser?.phone || '@anonymous'
-                    : '•••••••••••'}
-                </Text>
+                {showTag ? (
+                  authUser?.account_id?.tagname ? (
+                    <Text style={styles.tagText}>@{authUser.account_id.tagname}</Text>
+                  ) : (
+                    <ActivityIndicator size="small" color={Colors.accent} />
+                  )
+                ) : (
+                  <Text style={styles.tagText}>•••••••••••</Text>
+                )}
                 {copied && <Text style={styles.copiedTooltip}>Copied</Text>}
               </View>
             </Pressable>
@@ -296,6 +304,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#ccc',
     fontSize: 12,
+    borderColor: '#ccc',
     marginBottom: 50,
   },
 });

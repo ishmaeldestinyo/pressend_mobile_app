@@ -1,4 +1,3 @@
-import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ChevronUpDownIcon } from 'react-native-heroicons/outline'
 import tw from 'twrnc';

@@ -1,116 +1,165 @@
 import React, { useState } from 'react';
 import {
-  ScrollView,
   View,
   Text,
-  TextInput,
+  useWindowDimensions,
   TouchableOpacity,
+  Alert,
+  Platform,
+  ToastAndroid,
+  Share,
 } from 'react-native';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import QRCode from 'react-native-qrcode-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
 import tw from 'twrnc';
-
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { CheckIcon } from 'react-native-heroicons/solid';
-
 import TopNavbar from '../../components/TopNavbar';
-import { PaymentMode } from '../../utils/paymentUtil';
-import CryptoTransferCard from '../../components/CryptoTransferCard';
-import FiatTransferCard from '../../components/FiatTransferCard';
-import TagTransferCard from '../../components/TagTransferCard';
+import LoadingModal from '../../components/LoadingModal';
+import { useAuth } from '../../context/userContext';
 
 function RecieveAssetsList() {
-  const [mode, setMode] = useState(PaymentMode.CRYPTO);
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('USD'); // debit currency
+  const layout = useWindowDimensions();
+  const [loading, setLoading] = useState(false);
+  const { authUser } = useAuth();
+  const [copiedTooltip, setCopiedTooltip] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    console.log({ mode, amount, currency });
-    // ⬆️ replace with real submit logic
-  };
-
-  /* Helper to render the correct card once, then animate on change */
-  const renderCard = () => {
-    switch (mode) {
-      case PaymentMode.CRYPTO:
-        return <CryptoTransferCard />;
-      case PaymentMode.FIAT:
-        return <FiatTransferCard />;
-      case PaymentMode.TAG:
-        return <TagTransferCard />;
-      default:
-        return null;
+  // Show copied message on Android Toast or iOS Alert
+  const showCopied = (msg: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(msg, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('Copied', msg);
     }
   };
 
-  return (
-    <View style={tw`bg-[#020618] flex-1`}>
-      {/* Top bar */}
-      <TopNavbar title="Recieve" />
+  const handleCopy = (text: string, label: string) => {
+    Clipboard.setString(text);
+    showCopied(`${label} copied`);
+  };
 
-      {/* Scrollable content */}
-      <ScrollView contentContainerStyle={tw`p-4 pb-32`}>
-        {/* ─── Mode of Transfer Tabs ───────────────────────────── */}
-        <View style={tw`flex-row mb-4`}>
-          {Object.values(PaymentMode).map((m) => (
-            <TouchableOpacity
-              key={m}
-              onPress={() => setMode(m)}
-              style={tw`flex-1 mx-1 py-3 rounded relative ${
-                mode === m ? 'bg-blue-500' : 'bg-gray-700'
-              } items-center justify-center`}
-            >
-              {/* Check‑mark only on selected tab */}
-              {mode === m && (
-                <View
-                  style={tw`absolute top-1 left-1 bg-green-500 rounded-full p-0.5`}
-                >
-                  <CheckIcon size={10} color="white" />
-                </View>
-              )}
-              <Text style={tw`text-white text-xs`}>{m}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+  const handleShare = async (message: string) => {
+    try {
+      await Share.share({ message });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
-        {/* ─── Amount & Currency Inputs ───────────────────────── */}
-        <Text style={tw`text-white mb-1`}>Amount</Text>
-        <View style={tw`flex-row items-center mb-6`}>
-          <TextInput
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="0.00"
-            placeholderTextColor="gray"
-            keyboardType="decimal-pad"
-            style={tw`flex-1 bg-gray-800 text-white rounded-l px-4 py-2`}
-          />
-          <TextInput
-            value={currency}
-            onChangeText={setCurrency}
-            placeholder="CUR"
-            placeholderTextColor="gray"
-            style={tw`w-20 bg-gray-700 text-white text-center rounded-r px-2 py-2`}
-          />
-        </View>
-
-        {/* ─── Card that fades in/out when mode changes ────────── */}
-        <Animated.View
-          key={mode}              // key forces re‑mount on mode change
-          entering={FadeIn}
-          exiting={FadeOut}
-        >
-          {renderCard()}
-        </Animated.View>
-      </ScrollView>
-
-      {/* ─── Submit Button fixed to bottom ────────────────────── */}
-      <View style={tw`absolute bottom-4 left-4 right-4`}>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          style={tw`bg-blue-600 rounded-full py-4 items-center`}
-        >
-          <Text style={tw`text-white font-bold text-sm`}>Preview</Text>
-        </TouchableOpacity>
-      </View>
+  // Buttons component for Copy & Share
+  const CopyShareRow = ({
+    value,
+    label,
+  }: {
+    value: string;
+    label: string;
+  }) => (
+    <View style={tw`flex-row justify-center mt-3`}>
+      <TouchableOpacity
+        onPress={() => handleCopy(value, label)}
+        style={tw`bg-white/20 px-4 py-2 rounded-full mr-3`}
+      >
+        <Text style={tw`text-white font-semibold`}>Copy</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => handleShare(`${label}: ${value}`)}
+        style={tw`bg-white/20 px-4 py-2 rounded-full`}
+      >
+        <Text style={tw`text-white font-semibold`}>Share</Text>
+      </TouchableOpacity>
     </View>
+  );
+
+  const CryptoQR = () => {
+    const address = authUser?.wallet_address || '0x123...';
+    return (
+      <View style={tw`flex-1 justify-center items-center px-6`}>
+        <Text style={tw`text-white text-xl font-bold mb-3`}>
+          Scan to Receive Crypto
+        </Text>
+        <QRCode value={address} size={180} backgroundColor="white" />
+        <Text style={tw`text-white mt-4 font-semibold`}>Your Wallet Address</Text>
+        <Text style={tw`text-white text-xs text-center mt-1`}>{address}</Text>
+        <CopyShareRow value={address} label="Wallet Address" />
+        <Text style={tw`text-gray-400 text-xs mt-3 text-center`}>
+          Use this QR to receive SOL tokens directly into your wallet.
+        </Text>
+      </View>
+    );
+  };
+
+  const TagView = () => {
+    const tag = `@${authUser?.account_id?.tagname || 'yourtag'}`;
+    return (
+      <View style={tw`flex-1 justify-center items-center px-6`}>
+        <Text style={tw`text-white text-2xl font-bold`}>{tag}</Text>
+        <CopyShareRow value={tag} label="Tag" />
+        <Text style={tw`text-white mt-2 text-center text-sm`}>
+          Share your unique tag with anyone to receive payments instantly and
+          securely — no need to expose your wallet address.
+        </Text>
+      </View>
+    );
+  };
+
+  const BankDetailView = () => {
+    const bank = authUser?.account_id?.bank_detail || {};
+    const detail = `Bank: ${bank.bank_name || 'N/A'}\nAcct No: ${
+      bank.account_number || 'N/A'
+    }\nAcct Name: ${bank.account_name || 'N/A'}`;
+    return (
+      <View style={tw`flex-1 justify-center items-center px-6`}>
+        <Text style={tw`text-white text-xl font-bold mb-2`}>Receive to Your Bank</Text>
+        <Text style={tw`text-white text-base`}>
+          Bank: {bank.bank_name || 'N/A'}
+        </Text>
+        <Text style={tw`text-white text-base mt-1`}>
+          Acct No: {bank.account_number || 'N/A'}
+        </Text>
+        <Text style={tw`text-white text-base mt-1`}>
+          Acct Name: {bank.account_name || 'N/A'}
+        </Text>
+        <CopyShareRow value={detail} label="Bank Details" />
+        <Text style={tw`text-gray-400 text-xs mt-3 text-center`}>
+          Share your bank details only with trusted individuals.
+        </Text>
+      </View>
+    );
+  };
+
+  const renderScene = SceneMap({
+    crypto: CryptoQR,
+    tag: TagView,
+    bank: BankDetailView,
+  });
+
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: 'crypto', title: 'Crypto' },
+    { key: 'tag', title: 'Tag' },
+    { key: 'bank', title: 'Bank' },
+  ]);
+
+  return (
+    <>
+      {loading && <LoadingModal />}
+      <View style={tw`bg-[#020618] flex-1`}>
+        <TopNavbar title="Receive" />
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={(props) => (
+            <TabBar
+              {...props}
+              indicatorStyle={tw`bg-white`}
+              style={tw`bg-[#020618]`}
+              labelStyle={tw`text-white font-bold`}
+            />
+          )}
+        />
+      </View>
+    </>
   );
 }
 

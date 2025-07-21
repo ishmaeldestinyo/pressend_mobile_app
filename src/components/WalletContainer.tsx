@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import {
   ChevronDownIcon,
@@ -26,6 +27,8 @@ import { useAuth } from '../context/userContext';
 type WalletContainerProps = {
   tokens: Token[];
   scrollY: Animated.Value;
+  showTag: boolean,
+  setShowTag: (val: boolean) => void
 };
 
 const ASSETS = ['NGN', 'USDT', 'SOL'];
@@ -33,7 +36,7 @@ const ASSETS = ['NGN', 'USDT', 'SOL'];
 const usdtIcon = require('../../assets/images/usdt.png');
 const solIcon = require('../../assets/images/sol.png');
 
-export default function WalletContainer({ tokens, scrollY }: WalletContainerProps) {
+export default function WalletContainer({ tokens, scrollY, setShowTag, showTag }: WalletContainerProps) {
   const [showBalance, setShowBalance] = useState(true);
   const [assetIndex, setAssetIndex] = useState(0);
 
@@ -54,12 +57,17 @@ export default function WalletContainer({ tokens, scrollY }: WalletContainerProp
         {/* Top Row */}
         <View style={styles.topRow}>
           <View style={styles.balanceLeft}>
-            {showBalance ? (
-              formatBalance(currentAsset, authUser?.account_id?.ng_balance)
+            {showTag ? (
+              authUser?.account_id?.ng_balance !== undefined ? (
+                <Text style={styles.balanceText}>
+                  {formatBalance(currentAsset, authUser.account_id.ng_balance)}
+                </Text>
+              ) : (
+                <ActivityIndicator size="small" color={Colors.accent} />
+              )
             ) : (
-              <Text style={styles.balanceText}>••••••</Text>
+              <Text style={styles.balanceText}>•••••••••••</Text>
             )}
-
             <TouchableOpacity onPress={cycleAsset} style={styles.assetPickerInline}>
               <Text style={styles.assetText}>{currentAsset}</Text>
               <ChevronDownIcon size={16} color={Colors.accent} />
@@ -230,7 +238,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
   },
-  // ✅ Added for asset image + text
   assetRow: {
     flexDirection: 'row',
     alignItems: 'center',

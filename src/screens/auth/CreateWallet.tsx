@@ -1,5 +1,4 @@
-// [No change to imports or top boilerplate — keep as-is]
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,

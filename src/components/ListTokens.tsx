@@ -1,10 +1,8 @@
-import React from 'react';
 import {
   View,
   Text,
-  Animated,     // ⬅️ add
+  Animated,    
   Image,
-  TouchableOpacity,
 } from 'react-native';
 import tw from 'twrnc';
 import { ChevronUpDownIcon } from 'react-native-heroicons/outline';
@@ -20,7 +18,7 @@ export type Token = {
 
 type Props = {
   tokens: Token[];
-  scrollY: Animated.Value;   // ⬅️ expect it
+  scrollY: Animated.Value;   
 };
 
 export default function ListTokens({ tokens, scrollY }: Props) {

@@ -35,7 +35,10 @@ function TagTransferCard({ tag, setTag, note, setNote, tagnameError, setTagnameE
         placeholder="@username"
         placeholderTextColor="gray"
         autoCapitalize="none"
-        style={tw`bg-gray-800 text-white rounded px-4 py-2 ${tagnameError ? '' : 'mb-4'}`}
+        style={[
+          tw`bg-gray-800 text-white rounded py-2 ${tagnameError ? '' : 'mb-4'}`,
+          { paddingLeft: 16, paddingRight: 16 },
+        ]}
       />
 
       {tagnameError ? <Text style={tw`text-red-500 text-[13px] mt-2 mb-4`}>{tagnameError}</Text> : null}
@@ -48,7 +51,7 @@ function TagTransferCard({ tag, setTag, note, setNote, tagnameError, setTagnameE
         placeholderTextColor="gray"
         multiline
         numberOfLines={3}
-        style={tw`bg-gray-800 text-white rounded px-3 py-2`} // increased px-4 → px-5
+        style={[tw`bg-gray-800 text-white rounded py-2`, { paddingLeft: 16, paddingRight: 16 }]}
       />
 
     </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -151,6 +151,7 @@ function ImportWallet() {
         if (accessToken) {
           setAuthUser(response?.data);
           await AsyncStorage.setItem('accessToken', accessToken);
+          await AsyncStorage.setItem('isNewUser', "No");
         }
 
         setShowSuccess(false);
@@ -237,27 +238,32 @@ function ImportWallet() {
                       onChangeText={(text) => {
                         const digitsOnly = text.replace(/\D/g, '');
 
+                        // Always update the phone so user can delete
+                        setPhone(digitsOnly);
+
+                        // Handle first digit not starting with 0
                         if (digitsOnly.length === 1 && digitsOnly[0] !== '0') {
                           setErrors((prev) => ({ ...prev, phone: 'Phone number must start with 0' }));
                           return;
                         }
 
-                        // Clear the error if first digit is 0 or empty
-                        setErrors((prev) => ({ ...prev, phone: '' }));
-
+                        // Prevent typing more than 15 digits
                         if (digitsOnly.length > 15) return;
 
-                        setPhone(digitsOnly);
-
-                        let error = '';
-                        if (digitsOnly.length >= 11 && !/^\d{11,15}$/.test(digitsOnly)) {
-                          error = 'Enter a valid phone number';
+                        // Clear "starts with 0" error only if input is empty or starts with 0
+                        if (digitsOnly.length === 0 || digitsOnly[0] === '0') {
+                          setErrors((prev) => ({ ...prev, phone: '' }));
                         }
 
-                        setErrors((prev) => ({ ...prev, phone: error }));
+                        // Validate length only if input is 11+ digits and starts with 0
+                        if (
+                          digitsOnly.length >= 11 &&
+                          digitsOnly[0] === '0' &&
+                          !/^\d{11,15}$/.test(digitsOnly)
+                        ) {
+                          setErrors((prev) => ({ ...prev, phone: 'Enter a valid phone number' }));
+                        }
                       }}
-
-
                       keyboardType="phone-pad"
                       style={tw`border border-[#3c4464] bg-[rgba(255,255,255,0.05)] text-white rounded-lg pl-10 py-2`}
                     />
@@ -314,10 +320,10 @@ function ImportWallet() {
             <TouchableOpacity
               style={tw.style(
                 `py-3 rounded-xl items-center`,
-                ((email || phone) && password) ? 'bg-[#2299fb]' : 'bg-gray-500'
+                (email || phone) && password && !errors.phone ? 'bg-[#2299fb]' : 'bg-gray-500'
               )}
               onPress={signInHandler}
-              disabled={!((email || phone) && password)}
+              disabled={!((email || phone) && password) || !!errors.phone}
             >
               <Text style={tw`text-white font-semibold text-base`}>Submit</Text>
             </TouchableOpacity>

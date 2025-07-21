@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   View,
   SafeAreaView,
@@ -227,7 +227,9 @@ const OTPScreen: React.FC<OTPScreenProps> = ({ route }) => {
               {otp.map((digit, index) => (
                 <TextInput
                   key={index}
-                  ref={(ref) => (inputs.current[index] = ref)}
+                  ref={(ref) => {
+                     inputs.current[index] = ref
+                  }}
                   value={digit}
                   onChangeText={(text) => {
                     setErrors((prev) => ({ ...prev, otherError: '' }));

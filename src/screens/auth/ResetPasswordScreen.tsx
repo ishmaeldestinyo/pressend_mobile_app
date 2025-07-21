@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import{ useState } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,13 @@ import TopNavbar from '../../components/TopNavbar';
 import LoadingModal from '../../components/LoadingModal';
 import { getDeviceDetails } from '../../utils/getDeviceInfo';
 import { useNavigation } from '@react-navigation/native';
-import { axiosInstance } from '../../api/axiosConfig';
 import { AppRoutes, RootStackParamList } from '../../constants/routes';
 import { useAxiosWithNetworkCheck } from '../../api/useAxiosWithNetworkCheck';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const ResetPasswordScreen = () => {
-  const navigation = useNavigation();
+   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string; other?: string }>({});
   const [loading, setLoading] = useState(false);
@@ -130,7 +131,7 @@ const ResetPasswordScreen = () => {
                 /\S+@\S+\.\S+/.test(email) ? 'bg-[#2299fb]' : 'bg-gray-500'
               )}
               onPress={handleSubmit}
-              disabled={!/\S+@\S+\.\S+/.test(email)} // ✅ email must be valid
+              disabled={!/\S+@\S+\.\S+/.test(email)} 
             >
               <Text style={tw`text-white font-semibold text-base`}>Reset</Text>
             </TouchableOpacity>
